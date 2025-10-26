@@ -1,0 +1,143 @@
+.aiGenerator {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  max-width: 700px;
+}
+
+.header {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: flex-start;
+}
+
+.aiIcon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-h2);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.subtitle {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.promptSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: #dc2626;
+  font-size: var(--font-size-body-sm);
+}
+
+.errorIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.examples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.examplesLabel {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin: 0;
+}
+
+.examplesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.exampleButton {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-hover-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.exampleButton:hover:not(:disabled) {
+  background: rgba(79, 70, 229, 0.05);
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+.exampleButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--radius-md);
+  color: #d97706;
+  font-size: var(--font-size-body-sm);
+}
+
+@media (max-width: 767px) {
+  .header {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+}
+

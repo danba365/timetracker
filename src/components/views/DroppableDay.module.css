@@ -1,0 +1,17 @@
+.droppableDay {
+  height: 100%;
+  transition: all 0.2s ease;
+}
+
+.droppableDay.dragOver {
+  background-color: rgba(79, 70, 229, 0.05);
+  border: 2px dashed var(--primary-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+/* RTL Support */
+[dir='rtl'] .droppableDay {
+  direction: rtl;
+}
+

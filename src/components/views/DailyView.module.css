@@ -1,0 +1,161 @@
+.dailyView {
+  padding: var(--space-xl);
+  height: 100%;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+.dateInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.currentDate {
+  font-size: var(--font-size-h2);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.dayName {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+.holidayBadge {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-primary);
+  background: rgba(79, 70, 229, 0.1);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  display: inline-block;
+  margin-top: var(--space-xs);
+}
+
+.eventsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.eventBadge {
+  font-size: var(--font-size-body-sm);
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  display: inline-block;
+}
+
+.tasksSummary {
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+  font-weight: 500;
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-secondary);
+}
+
+.emptyState p {
+  margin: var(--space-sm) 0;
+}
+
+.emptyState p:first-child {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.navButtons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.timeline {
+  display: flex;
+  gap: var(--space-lg);
+  height: calc(100vh - var(--header-height) - 180px);
+  overflow-y: auto;
+}
+
+.timeColumn {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.timeSlot {
+  height: 60px;
+  padding: var(--space-sm);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tasksColumn {
+  flex: 1;
+  position: relative;
+}
+
+.taskSlot {
+  height: 60px;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-xs);
+  position: relative;
+}
+
+.scheduledTask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: var(--space-xs);
+}
+
+.unscheduledSection {
+  margin-top: var(--space-xl);
+  padding: var(--space-xl);
+  background: var(--color-hover-bg);
+  border-radius: var(--radius-md);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Mobile styles */
+@media (max-width: 767px) {
+  .dailyView {
+    padding: var(--space-lg);
+    padding-bottom: calc(var(--mobile-nav-height) + var(--space-lg));
+  }
+
+  .timeColumn {
+    width: 60px;
+  }
+
+  .timeline {
+    height: calc(100vh - var(--mobile-header-height) - var(--mobile-nav-height) - 160px);
+  }
+}
+

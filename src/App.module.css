@@ -1,0 +1,25 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-background);
+}
+
+/* Mobile styles */
+@media (max-width: 767px) {
+  .main {
+    flex-direction: column;
+  }
+}
+

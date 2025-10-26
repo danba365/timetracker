@@ -1,0 +1,179 @@
+# TimeTracker Development Rules
+
+## Project Context
+This is a personal weekly planner application built with React, TypeScript, and Supabase.
+
+## Tech Stack
+- React 18 with TypeScript
+- CSS Modules (no Tailwind)
+- Supabase for backend
+- @dnd-kit for drag and drop
+- date-fns for dates
+- react-i18next for i18n
+
+## Code Style
+
+### TypeScript
+- Use `type` imports: `import type { Task } from './types'`
+- Always define interfaces for component props
+- Use strict mode (enabled)
+- No `any` types
+
+### React
+- Use functional components with hooks
+- Use React.FC type for components
+- Always include proper dependencies in useEffect/useCallback
+- Use custom hooks for data fetching (useTasks, useCategories)
+
+### CSS
+- Use CSS Modules for component styles
+- Follow BEM-like naming in modules
+- Use CSS variables from variables.css
+- Mobile-first responsive design
+
+### File Organization
+```
+components/
+  common/       - Reusable UI components
+  layout/       - Layout components
+  task/         - Task-specific components
+  views/        - Page views
+hooks/          - Custom React hooks
+services/       - API/database services
+types/          - TypeScript type definitions
+utils/          - Helper functions
+i18n/           - Translations
+context/        - React Context
+styles/         - Global styles
+```
+
+## Naming Conventions
+- Components: PascalCase (e.g., TaskCard.tsx)
+- Hooks: camelCase with 'use' prefix (e.g., useTasks.ts)
+- CSS Modules: [Component].module.css
+- Types: PascalCase (e.g., Task, Category)
+- Functions: camelCase (e.g., formatDate)
+
+## Component Structure
+```tsx
+import React from 'react';
+import type { Props } from './types';
+import styles from './Component.module.css';
+
+interface ComponentProps {
+  // Props definition
+}
+
+export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
+  // Hooks
+  // State
+  // Effects
+  // Handlers
+  // Render
+  return <div className={styles.component}>...</div>;
+};
+```
+
+## State Management
+- Use React Context for global state (AppContext)
+- Use custom hooks for data operations (useTasks, useCategories)
+- Local state with useState for UI state
+- Optimistic updates for better UX
+
+## i18n
+- All user-facing strings must be in i18n files
+- Use t() function from useTranslation
+- Support both English and Hebrew
+- Handle RTL layout for Hebrew
+
+## Supabase Integration
+- All database operations through services layer
+- Use TypeScript types from types/ folder
+- Handle errors gracefully
+- Use optimistic UI updates
+
+## Accessibility
+- Use semantic HTML
+- Include ARIA labels
+- Ensure keyboard navigation
+- Maintain color contrast
+- Use proper focus indicators
+
+## Responsive Design
+- Mobile: < 768px (bottom nav, simplified layout)
+- Tablet: 768px - 1024px (adapted layout)
+- Desktop: 1024px+ (full sidebar, multi-column)
+
+## Performance
+- Use React.memo for expensive components
+- Debounce user input (500ms for saves)
+- Lazy load heavy components if needed
+- Optimize images
+
+## Testing Workflow
+1. Make changes
+2. Test in browser (multiple views)
+3. Test mobile responsive
+4. Test RTL mode
+5. Run build: `npm run build`
+6. Fix any TypeScript errors
+7. Test production build: `npm run preview`
+
+## Git Workflow (if using Git)
+- Feature branches from main
+- Descriptive commit messages
+- Test before committing
+- Keep commits atomic
+
+## Common Tasks
+
+### Adding a New Component
+1. Create [Component].tsx in appropriate folder
+2. Create [Component].module.css
+3. Define props interface
+4. Export from index file if needed
+5. Add translations if needed
+
+### Adding a New Feature
+1. Update types if needed (types/)
+2. Add database operations (services/)
+3. Create/update components
+4. Add translations (i18n/)
+5. Update documentation
+6. Test thoroughly
+
+### Fixing Bugs
+1. Reproduce the bug
+2. Check browser console
+3. Check Supabase logs
+4. Fix and test
+5. Verify in all views
+6. Test responsive
+
+## Don't Do This
+- ❌ Use inline styles (use CSS Modules)
+- ❌ Use any type (use proper types)
+- ❌ Hardcode strings (use i18n)
+- ❌ Skip error handling
+- ❌ Ignore TypeScript errors
+- ❌ Skip testing mobile layout
+- ❌ Commit with build errors
+
+## Do This
+- ✅ Use CSS variables
+- ✅ Use type imports
+- ✅ Handle all errors
+- ✅ Add loading states
+- ✅ Support RTL
+- ✅ Test mobile
+- ✅ Use semantic HTML
+- ✅ Add ARIA labels
+- ✅ Document complex logic
+
+## Resources
+- Project docs in README.md
+- Feature list in FEATURES.md
+- Deployment guide in DEPLOYMENT.md
+- Quick start in QUICKSTART.md
+- Commands in COMMANDS.md
+

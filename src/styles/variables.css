@@ -1,0 +1,104 @@
+:root {
+  /* Primary Colors */
+  --color-primary: #000000;
+  --color-primary-hover: #1F1F1F;
+  --color-accent: #4F46E5;
+
+  /* Priority Colors */
+  --color-priority-high: #FF6B6B;
+  --color-priority-high-bg: #FFF5F5;
+  --color-priority-medium: #FFB84D;
+  --color-priority-medium-bg: #FFFBF0;
+  --color-priority-low: #6B9BD1;
+  --color-priority-low-bg: #F0F7FF;
+
+  /* Status Colors */
+  --color-status-completed: #10B981;
+  --color-status-in-progress: #FFB84D;
+
+  /* Category Colors (Default) */
+  --color-category-work: #FF6B6B;
+  --color-category-learning: #17A2B8;
+  --color-category-meetings: #FFB84D;
+  --color-category-personal: #2D3E50;
+  --color-category-other: #FF8C42;
+
+  /* Neutral Colors */
+  --color-background: #FAFAFA;
+  --color-surface: #FFFFFF;
+  --color-border: #E8E8E8;
+  --color-sidebar-bg: #F8F9FA;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6C757D;
+  --color-text-tertiary: #ADB5BD;
+  --color-hover-bg: #F5F5F5;
+
+  /* Tag Colors */
+  --color-tag-bg: #FFF5F5;
+  --color-tag-border: #FF6B6B;
+
+  /* Typography */
+  --font-primary: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-hebrew: 'Heebo', 'Assistant', sans-serif;
+
+  --font-size-h1: 1.5rem; /* 24px */
+  --font-size-h2: 1.25rem; /* 20px */
+  --font-size-h3: 1.125rem; /* 18px */
+  --font-size-body-lg: 1rem; /* 16px */
+  --font-size-body: 0.875rem; /* 14px */
+  --font-size-body-sm: 0.75rem; /* 12px */
+  --font-size-caption: 0.6875rem; /* 11px */
+
+  --line-height-heading: 1.2;
+  --line-height-body: 1.5;
+  --line-height-compact: 1.4;
+
+  /* Spacing */
+  --space-xs: 0.25rem; /* 4px */
+  --space-sm: 0.5rem; /* 8px */
+  --space-md: 0.75rem; /* 12px */
+  --space-lg: 1rem; /* 16px */
+  --space-xl: 1.5rem; /* 24px */
+  --space-2xl: 2rem; /* 32px */
+  --space-3xl: 3rem; /* 48px */
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  --radius-sidebar-item: 8px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-sidebar: 2px 0 8px rgba(0, 0, 0, 0.04);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --header-height: 80px;
+  --mobile-header-height: 56px;
+  --mobile-nav-height: 64px;
+}
+
+/* RTL Support */
+[dir='rtl'] {
+  --shadow-sidebar: -2px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark Mode (Optional Future Enhancement) */
+@media (prefers-color-scheme: dark) {
+  /* Keep light mode for now as per PRD */
+}
+
