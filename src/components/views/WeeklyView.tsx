@@ -120,9 +120,9 @@ export const WeeklyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref) 
     <div className={styles.weeklyView}>
       <div className={styles.navigation}>
         <div className={styles.dateInfo}>
-          <h2 className={styles.currentMonth}>{format(currentDate, 'MMMM yyyy')}</h2>
+          <h2 className={styles.currentMonth}>{format(currentDate, 'MMMM yyyy', isHebrew ? { locale: he } : {})}</h2>
           <p className={styles.dateRange}>
-            {format(weekDays[0], 'MMM d')} - {format(weekDays[6], 'MMM d, yyyy')}
+            {format(weekDays[0], 'MMM d', isHebrew ? { locale: he } : {})} - {format(weekDays[6], 'MMM d, yyyy', isHebrew ? { locale: he } : {})}
           </p>
         </div>
         <div className={styles.navButtons}>

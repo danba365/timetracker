@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { Task, CreateTaskInput, UpdateTaskInput } from '../types/task';
 import { taskService } from '../services/taskService';
 import { format } from 'date-fns';
@@ -8,27 +8,68 @@ export const useTasks = (dateRange?: { start: Date; end: Date }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Normalize date range to string to avoid unnecessary re-renders
+  const dateRangeKey = useMemo(() => {
+    if (!dateRange) return null;
+    return `${format(dateRange.start, 'yyyy-MM-dd')}-${format(dateRange.end, 'yyyy-MM-dd')}`;
+  }, [dateRange]);
 
   const fetchTasks = useCallback(async () => {
-    if (!dateRange) return;
+    if (!dateRange || !dateRangeKey) {
+      setLoading(false);
+      return;
+    }
+
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     try {
       setLoading(true);
       setError(null);
       const startDate = format(dateRange.start, 'yyyy-MM-dd');
       const endDate = format(dateRange.end, 'yyyy-MM-dd');
+      
       const data = await taskService.getByDateRange(startDate, endDate);
-      setTasks(data);
+      
+      // Only update if this request wasn't cancelled
+      if (!abortController.signal.aborted) {
+        setTasks(data);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
-      console.error('Error fetching tasks:', err);
+      // Don't set error for aborted requests
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      // Only update error if this request wasn't cancelled
+      if (!abortController.signal.aborted) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
+        console.error('Error fetching tasks:', err);
+      }
     } finally {
-      setLoading(false);
+      // Only update loading state if this request wasn't cancelled
+      if (!abortController.signal.aborted) {
+        setLoading(false);
+      }
     }
-  }, [dateRange]);
+  }, [dateRange, dateRangeKey]);
 
   useEffect(() => {
     fetchTasks();
+    
+    // Cleanup: cancel request on unmount or when dateRange changes
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchTasks]);
 
   const createTask = useCallback(async (input: CreateTaskInput): Promise<Task> => {
@@ -96,4 +137,3 @@ export const useTasks = (dateRange?: { start: Date; end: Date }) => {
     refetch: fetchTasks,
   };
 };
-

@@ -108,13 +108,13 @@ export const MonthlyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref)
         </h2>
         <div className={styles.navButtons}>
           <Button variant="secondary" onClick={() => navigateDate('prev')}>
-            ←
+            {t('common.previous')}
           </Button>
           <Button variant="secondary" onClick={goToToday}>
             {t('common.today')}
           </Button>
           <Button variant="secondary" onClick={() => navigateDate('next')}>
-            →
+            {t('common.next')}
           </Button>
         </div>
       </div>
