@@ -1,6 +1,8 @@
 import type { Handler, HandlerEvent } from '@netlify/functions';
 
 interface TaskContext {
+  currentDate: string;
+  currentDay: string;
   dataRange: {
     start: string;
     end: string;
@@ -20,6 +22,11 @@ interface TaskContext {
       status: string;
       category: string;
     }>;
+    reminders: Array<{
+      title: string;
+      date: string;
+      category: string;
+    }>;
   };
   nextWeek: {
     range: {
@@ -31,6 +38,11 @@ interface TaskContext {
       title: string;
       date: string;
       status: string;
+      category: string;
+    }>;
+    reminders: Array<{
+      title: string;
+      date: string;
       category: string;
     }>;
   };
@@ -58,6 +70,15 @@ interface TaskContext {
     hours: number;
     completionRate: number;
   }>;
+  overdueTasks: {
+    total: number;
+    tasks: Array<{
+      title: string;
+      date: string;
+      daysOverdue: number;
+      category: string;
+    }>;
+  };
 }
 
 interface CoachRequest {
@@ -97,21 +118,27 @@ const handler: Handler = async (event: HandlerEvent) => {
     let contextString = '';
     if (context) {
       if (lang === 'he') {
-        contextString = `\n\n=== 📊 נתוני המשתמש המלאים (${context.dataRange.start} - ${context.dataRange.end}) ===
+        contextString = `\n\n=== 📅 היום: ${context.currentDate} (${context.currentDay}) ===
+
+=== 📊 נתוני המשתמש המלאים (${context.dataRange.start} - ${context.dataRange.end}) ===
 
 🔥 רצף ימים נוכחי: ${context.currentStreak} ימים
 
 📅 שבוע נוכחי (${context.currentWeek.range.start} - ${context.currentWeek.range.end}):
-- סה"כ משימות: ${context.currentWeek.totalTasks}
+- סה"כ משימות פעולה: ${context.currentWeek.totalTasks}
 - הושלמו: ${context.currentWeek.completedTasks} (${context.currentWeek.completionRate}%)
 - שעות עבודה: ${context.currentWeek.totalHours}
-- משימות:
-${context.currentWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n')}
+- משימות פעולה (דורשות השלמה):
+${context.currentWeek.tasks.length > 0 ? context.currentWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • אין משימות'}
+- תזכורות (אינפורמטיביות בלבד):
+${context.currentWeek.reminders.length > 0 ? context.currentWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • אין תזכורות'}
 
 📅 שבוע הבא (${context.nextWeek.range.start} - ${context.nextWeek.range.end}):
-- סה"כ משימות: ${context.nextWeek.totalTasks}
-- משימות מתוכננות:
+- סה"כ משימות פעולה: ${context.nextWeek.totalTasks}
+- משימות פעולה מתוכננות:
 ${context.nextWeek.tasks.length > 0 ? context.nextWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • אין משימות מתוכננות'}
+- תזכורות (אינפורמטיביות בלבד):
+${context.nextWeek.reminders.length > 0 ? context.nextWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • אין תזכורות'}
 
 📚 משימות עבר:
 - סה"כ: ${context.pastTasks.total}
@@ -126,23 +153,33 @@ ${context.futureTasks.upcoming.length > 0 ? context.futureTasks.upcoming.map((t)
 
 🏆 קטגוריות מובילות:
 ${context.topCategories.map((cat) => `- ${cat.name}: ${cat.completed}/${cat.tasks} משימות (${cat.hours} שעות, ${cat.completionRate}% הושלמו)`).join('\n')}
+
+⚠️ משימות שהוחמצו (לא הושלמו בזמן):
+- סה"כ משימות שהוחמצו: ${context.overdueTasks.total}
+${context.overdueTasks.total > 0 ? `- משימות שהוחמצו:\n${context.overdueTasks.tasks.map((t) => `  • ${t.title} - ${t.date} (${t.daysOverdue} ימים באיחור) [${t.category}]`).join('\n')}` : '- אין משימות שהוחמצו - עבודה מצוינת! 🎉'}
 ===`;
       } else {
-        contextString = `\n\n=== 📊 User's Complete Data (${context.dataRange.start} - ${context.dataRange.end}) ===
+        contextString = `\n\n=== 📅 TODAY: ${context.currentDate} (${context.currentDay}) ===
+
+=== 📊 User's Complete Data (${context.dataRange.start} - ${context.dataRange.end}) ===
 
 🔥 Current Streak: ${context.currentStreak} days
 
 📅 CURRENT WEEK (${context.currentWeek.range.start} - ${context.currentWeek.range.end}):
-- Total Tasks: ${context.currentWeek.totalTasks}
+- Total Actionable Tasks: ${context.currentWeek.totalTasks}
 - Completed: ${context.currentWeek.completedTasks} (${context.currentWeek.completionRate}%)
 - Work Hours: ${context.currentWeek.totalHours}
-- Tasks:
-${context.currentWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n')}
+- Actionable Tasks (require completion):
+${context.currentWeek.tasks.length > 0 ? context.currentWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • No tasks'}
+- Reminders (informational only):
+${context.currentWeek.reminders.length > 0 ? context.currentWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • No reminders'}
 
 📅 NEXT WEEK (${context.nextWeek.range.start} - ${context.nextWeek.range.end}):
-- Total Tasks: ${context.nextWeek.totalTasks}
-- Scheduled Tasks:
+- Total Actionable Tasks: ${context.nextWeek.totalTasks}
+- Scheduled Actionable Tasks:
 ${context.nextWeek.tasks.length > 0 ? context.nextWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • No tasks scheduled'}
+- Reminders (informational only):
+${context.nextWeek.reminders.length > 0 ? context.nextWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • No reminders'}
 
 📚 PAST TASKS:
 - Total: ${context.pastTasks.total}
@@ -157,6 +194,10 @@ ${context.futureTasks.upcoming.length > 0 ? context.futureTasks.upcoming.map((t)
 
 🏆 TOP CATEGORIES:
 ${context.topCategories.map((cat) => `- ${cat.name}: ${cat.completed}/${cat.tasks} tasks (${cat.hours}h, ${cat.completionRate}% complete)`).join('\n')}
+
+⚠️ OVERDUE TASKS (not completed on time):
+- Total Overdue: ${context.overdueTasks.total}
+${context.overdueTasks.total > 0 ? `- Overdue Tasks:\n${context.overdueTasks.tasks.map((t) => `  • ${t.title} - ${t.date} (${t.daysOverdue} days overdue) [${t.category}]`).join('\n')}` : '- No overdue tasks - great job! 🎉'}
 ===`;
       }
     }
@@ -169,16 +210,34 @@ ${context.topCategories.map((cat) => `- ${cat.name}: ${cat.completed}/${cat.task
 השתמש באמוג'ים רלוונטיים כדי להפוך את התגובות למעניינות יותר.
 היה מעודד, חיובי ומעשי בעצות שלך.
 
-יש לך גישה מלאה לנתוני המשתמש - משימות עבר, הווה ועתיד (2 חודשים אחורה ו-2 חודשים קדימה). השתמש בנתונים אלה כדי לתת תשובות מדויקות ואישיות.
-כאשר משתמש שואל על שבוע הבא, משימות עתידיות, או כל מידע אחר - התבסס על הנתונים המלאים למטה.${contextString}`,
+יש לך גישה מלאה לנתוני המשתמש - משימות עבר, הווה ועתיד (2 חודשים אחורה ו-2 חודשים קדימה). 
+
+הבחנה חשובה:
+- משימות פעולה (Tasks) = פריטים שדורשים השלמה ומעקב סטטוס
+- תזכורות (Reminders) = הערות אינפורמטיביות בלבד (כמו "טיול של האישה", "פגישה אצל הרופא")
+
+אתה יודע בדיוק אילו משימות פעולה הושלמו, אילו ממתינות, ואילו הוחמצו.
+כאשר משתמש שואל על "משימות" - התייחס רק למשימות פעולה, לא לתזכורות.
+כאשר משתמש שואל "איזה יום היום" או "מה התאריך" - השתמש בשדה "היום" למטה.
+כאשר יש משימות שהוחמצו - עודד את המשתמש בצורה חיובית ועזור לו לתעדף אותן.
+תזכורות הן אינפורמטיביות בלבד - אין צורך לעקוב אחריהן או להשלים אותן.${contextString}`,
       en: `You are an expert and dedicated personal productivity coach. Your role is to help the user manage their time better, stay focused, and achieve their goals.
 
 Always respond in English, concisely and clearly (2-4 sentences).
 Use relevant emojis to make responses engaging.
 Be encouraging, positive, and practical in your advice.
 
-You have FULL access to the user's data - past, present, and future tasks (2 months back and 2 months ahead). Use this data to provide accurate, personalized responses.
-When the user asks about next week, future tasks, or any other information - refer to the complete data below.${contextString}`,
+You have FULL access to the user's data - past, present, and future tasks (2 months back and 2 months ahead).
+
+Important distinction:
+- Actionable Tasks = Items that require completion and status tracking
+- Reminders = Informational notes only (like "Wife's trip", "Doctor appointment")
+
+You know exactly which actionable tasks are completed, pending, and overdue (missed their deadline).
+When user asks about "tasks" - refer only to actionable tasks, not reminders.
+When user asks "what day is today" or "what's the date" - use the "TODAY" field below.
+When there are overdue tasks - encourage the user positively and help them prioritize.
+Reminders are informational only - no need to track or complete them.${contextString}`,
     };
 
     // Call OpenAI API

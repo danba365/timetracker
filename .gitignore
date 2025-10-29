@@ -28,3 +28,6 @@ dist-ssr
 *.sln
 *.sw?
 tracker.env
+
+# Local Netlify folder
+.netlify

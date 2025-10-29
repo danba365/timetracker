@@ -24,6 +24,15 @@
   border-left-color: #0ea5e9 !important;
 }
 
+.taskCard.overdue {
+  background: rgba(239, 68, 68, 0.08);
+  border-left-color: #ef4444 !important;
+}
+
+.taskCard.overdue:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
 .content {
   display: flex;
   flex-direction: column;
@@ -39,6 +48,19 @@
 .reminderIcon {
   font-size: 16px;
   opacity: 0.8;
+}
+
+.overdueIcon {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.overdueLabel {
+  font-size: var(--font-size-caption);
+  color: #ef4444;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: var(--space-xs);
 }
 
 .title {

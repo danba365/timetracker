@@ -24,6 +24,7 @@
     "createFirstTask": "Create your first task!",
     "scheduled": "scheduled",
     "unscheduled": "unscheduled",
+    "missed": "Missed",
     "title": "Title",
     "description": "Description",
     "date": "Date",

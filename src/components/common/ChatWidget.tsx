@@ -84,6 +84,9 @@ export const ChatWidget: React.FC = () => {
 
     try {
       // Always send task context with EVERY message for full access to data
+      // Get fresh current date/time for accurate context
+      const now = new Date();
+      
       let taskContext = null;
       if (tasks.length > 0) {
         const currentWeekStart = startOfWeek(now, { weekStartsOn: 0 });
@@ -103,11 +106,23 @@ export const ChatWidget: React.FC = () => {
         );
         const futureTasks = tasks.filter((t) => new Date(t.date) > nextWeekEnd);
 
+        // Calculate overdue tasks (past date and not completed)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const allOverdueTasks = tasks.filter((t) => {
+          const taskDate = new Date(t.date);
+          taskDate.setHours(0, 0, 0, 0);
+          return t.status !== 'done' && taskDate < today;
+        });
+
         // Calculate metrics for current week
         const currentMetrics = calculateMetrics(currentWeekTasks, 'week');
         const categoryStats = getCategoryStats(tasks, categories, 'all');
 
         taskContext = {
+          currentDate: formatDate(now, 'MMMM d, yyyy'),
+          currentDay: formatDate(now, 'EEEE'),
           dataRange: {
             start: formatDate(fullRange.start, 'MMM d, yyyy'),
             end: formatDate(fullRange.end, 'MMM d, yyyy'),
@@ -117,29 +132,47 @@ export const ChatWidget: React.FC = () => {
               start: formatDate(currentWeekStart, 'MMM d'),
               end: formatDate(currentWeekEnd, 'MMM d, yyyy'),
             },
-            totalTasks: currentWeekTasks.length,
-            completedTasks: currentWeekTasks.filter((t) => t.status === 'done').length,
+            totalTasks: currentWeekTasks.filter((t) => t.task_type !== 'reminder').length,
+            completedTasks: currentWeekTasks.filter((t) => t.task_type !== 'reminder' && t.status === 'done').length,
             completionRate: currentMetrics.completionRate,
             totalHours: Math.round(currentMetrics.totalMinutes / 60 * 10) / 10,
-            tasks: currentWeekTasks.map((t) => ({
-              title: t.title,
-              date: t.date,
-              status: t.status,
-              category: categories.find((c) => c.id === t.category_id)?.name || 'None',
-            })),
+            tasks: currentWeekTasks
+              .filter((t) => t.task_type !== 'reminder')
+              .map((t) => ({
+                title: t.title,
+                date: t.date,
+                status: t.status,
+                category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+              })),
+            reminders: currentWeekTasks
+              .filter((t) => t.task_type === 'reminder')
+              .map((t) => ({
+                title: t.title,
+                date: t.date,
+                category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+              })),
           },
           nextWeek: {
             range: {
               start: formatDate(nextWeekStart, 'MMM d'),
               end: formatDate(nextWeekEnd, 'MMM d, yyyy'),
             },
-            totalTasks: nextWeekTasks.length,
-            tasks: nextWeekTasks.map((t) => ({
-              title: t.title,
-              date: t.date,
-              status: t.status,
-              category: categories.find((c) => c.id === t.category_id)?.name || 'None',
-            })),
+            totalTasks: nextWeekTasks.filter((t) => t.task_type !== 'reminder').length,
+            tasks: nextWeekTasks
+              .filter((t) => t.task_type !== 'reminder')
+              .map((t) => ({
+                title: t.title,
+                date: t.date,
+                status: t.status,
+                category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+              })),
+            reminders: nextWeekTasks
+              .filter((t) => t.task_type === 'reminder')
+              .map((t) => ({
+                title: t.title,
+                date: t.date,
+                category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+              })),
           },
           pastTasks: {
             total: pastTasks.length,
@@ -172,6 +205,21 @@ export const ChatWidget: React.FC = () => {
             hours: Math.round(cat.totalMinutes / 60 * 10) / 10,
             completionRate: cat.completionRate,
           })),
+          overdueTasks: {
+            total: allOverdueTasks.length,
+            tasks: allOverdueTasks
+              .sort((a, b) => a.date.localeCompare(b.date)) // Oldest first
+              .map((t) => {
+                const taskDate = new Date(t.date);
+                const daysOverdue = Math.floor((today.getTime() - taskDate.getTime()) / (1000 * 60 * 60 * 24));
+                return {
+                  title: t.title,
+                  date: t.date,
+                  daysOverdue: daysOverdue,
+                  category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+                };
+              }),
+          },
         };
       }
 
