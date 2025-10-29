@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { startOfWeek, endOfWeek, format as formatDate } from 'date-fns';
 import { useTasks } from '../../hooks/useTasks';
+import { parseNaturalDate, parseNaturalTime } from '../../utils/naturalDateParser';
+import type { CreateTaskInput, Priority } from '../../types/task';
 import { useCategories } from '../../hooks/useCategories';
 import { useFormats } from '../../hooks/useFormats';
 import { calculateMetrics, getCategoryStats } from '../../services/analyticsService';
@@ -29,7 +31,7 @@ export const ChatWidget: React.FC = () => {
     start: new Date(now.getFullYear(), now.getMonth() - 2, 1), // 2 months ago
     end: new Date(now.getFullYear(), now.getMonth() + 3, 0), // 2 months ahead
   };
-  const { tasks } = useTasks(fullRange);
+  const { tasks, createTask } = useTasks(fullRange);
   const { categories } = useCategories();
   const { formats } = useFormats();
 
@@ -266,10 +268,104 @@ export const ChatWidget: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response from coach');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Coach API error:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to get response from coach`);
       }
 
       const data = await response.json();
+      
+      // Log the response for debugging
+      if (data.error) {
+        console.error('Coach response error:', data);
+        throw new Error(data.error || 'Unknown error from coach');
+      }
+      
+      // Handle task creation action
+      if (data.action && data.action.type === 'create_task') {
+        try {
+          const params = data.action.parameters;
+          
+          // Parse date if it's not already in YYYY-MM-DD format
+          let taskDate = params.date;
+          if (!taskDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const parsedDate = parseNaturalDate(params.date, lang, now);
+            if (parsedDate) {
+              taskDate = parsedDate;
+            } else {
+              throw new Error('Could not parse date');
+            }
+          }
+
+          // Parse time if provided
+          let startTime = params.start_time || null;
+          if (startTime && !startTime.match(/^\d{2}:\d{2}$/)) {
+            const parsedTime = parseNaturalTime(startTime, lang);
+            if (parsedTime) {
+              startTime = parsedTime;
+            }
+          }
+
+          let endTime = params.end_time || null;
+          if (endTime && !endTime.match(/^\d{2}:\d{2}$/)) {
+            const parsedTime = parseNaturalTime(endTime, lang);
+            if (parsedTime) {
+              endTime = parsedTime;
+            }
+          }
+
+          // Find category by name if provided
+          let categoryId: string | null = null;
+          if (params.category) {
+            const matchedCategory = categories.find(
+              (c) => c.name.toLowerCase() === params.category.toLowerCase()
+            );
+            categoryId = matchedCategory?.id || null;
+          }
+
+          // Create task input
+          const taskInput: CreateTaskInput = {
+            title: params.title,
+            description: params.description || null,
+            date: taskDate,
+            start_time: startTime,
+            end_time: endTime,
+            priority: (params.priority || 'medium') as Priority,
+            status: 'todo',
+            task_type: params.task_type || 'task',
+            category_id: categoryId,
+            tags: params.tags || [],
+          };
+
+          // Create the task
+          await createTask(taskInput);
+
+          // Show success message
+          const successMessage: Message = {
+            id: (Date.now() + 2).toString(),
+            text: lang === 'he'
+              ? `✅ משימה נוצרה בהצלחה: ${params.title} ב-${taskDate}${startTime ? ` בשעה ${startTime}` : ''}`
+              : `✅ Task created successfully: ${params.title} on ${taskDate}${startTime ? ` at ${startTime}` : ''}`,
+            sender: 'bot',
+            timestamp: Date.now(),
+          };
+
+          setMessages((prev) => [...prev, successMessage]);
+        } catch (error) {
+          console.error('Error creating task:', error);
+          const errorMessage: Message = {
+            id: (Date.now() + 2).toString(),
+            text: lang === 'he'
+              ? '❌ שגיאה ביצירת המשימה. נסה שוב.'
+              : '❌ Error creating task. Please try again.',
+            sender: 'bot',
+            timestamp: Date.now(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        }
+      }
+
+      // Always show the AI's reply
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: data.reply,
@@ -280,12 +376,17 @@ export const ChatWidget: React.FC = () => {
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('Chat error:', error);
+      // Log detailed error information
+      const errorDetails = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : '';
+      console.error('Error details:', { errorDetails, errorStack, error });
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text:
           lang === 'he'
-            ? '😔 מצטער, אירעה שגיאה. נסה שוב בעוד רגע.'
-            : '😔 Sorry, something went wrong. Please try again.',
+            ? `😔 מצטער, אירעה שגיאה: ${errorDetails || 'שגיאה לא ידועה'}`
+            : `😔 Sorry, something went wrong: ${errorDetails || 'Unknown error'}`,
         sender: 'bot',
         timestamp: Date.now(),
       };

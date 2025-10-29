@@ -307,7 +307,26 @@ ${context.overdueTasks.total > 0 ? `- Overdue Tasks:\n${context.overdueTasks.tas
 כאשר משתמש שואל על "משימות" - התייחס רק למשימות פעולה, לא לתזכורות.
 כאשר משתמש שואל "איזה יום היום" או "מה התאריך" - השתמש בשדה "היום" למטה.
 כאשר יש משימות שהוחמצו - עודד את המשתמש בצורה חיובית ועזור לו לתעדף אותן.
-תזכורות הן אינפורמטיביות בלבד - אין צורך לעקוב אחריהן או להשלים אותן.${contextString}`,
+תזכורות הן אינפורמטיביות בלבד - אין צורך לעקוב אחריהן או להשלים אותןผ่าน.
+
+כאשר המשתמש מבקש ליצור משימה חדשה (למשל "אני רוצה לפגוש את שי בשבוע הבא ביום רביעי בשעה 20:00" או "צור משימה: פגישה עם דני מחר בשעה שמונה בערב") - השתמש בפונקציה create_task כדי ליצור את המשימה.
+
+**חשוב לפרש תאריכים בעברית:**
+- "מחר" = tomorrow → YYYY-MM-DD
+- "יום רביעי הבא" / "ביום רביעי הבא" = next Wednesday → YYYY-MM-DD  
+- "השבוע הבא" = next week → YYYY-MM-DD
+- "ביום ראשון", "ביום שני" וכו' = this week or next week → YYYY-MM-DD
+- השתמש בשדה "היום" למטה כדי לחשב תאריכים יחסיים
+
+**חשוב לפרש זמנים בעברית:**
+- "שמונה בערב" = 20:00, "עשר בבוקר" = 10:00
+- "8 בערב", "20:00" = 20:00
+- המר כל זמן בעברית ל-HH:MM (24 שעות)
+
+**קטגוריות:**
+- אם המשתמש מזכיר קטגוריה, התאם אותה לקטגוריות הקיימות מהקונטקסט (בדוק שמות בעברית)
+
+תמיד החזר תאריך בפורמט YYYY-MM-DD וזמן בפורמט HH:MM.${contextString}`,
       en: `You are an expert and dedicated personal productivity coach. Your role is to help the user manage their time better, stay focused, and achieve their goals.
 
 Always respond in English, concisely and clearly (2-4 sentences).
@@ -324,8 +343,73 @@ You know exactly which actionable tasks are completed, pending, and overdue (mis
 When user asks about "tasks" - refer only to actionable tasks, not reminders.
 When user asks "what day is today" or "what's the date" - use the "TODAY" field below.
 When there are overdue tasks - encourage the user positively and help them prioritize.
-Reminders are informational only - no need to track or complete them.${contextString}`,
+Reminders are informational only - no need to track or complete them.
+
+When the user requests to create a new task (e.g., "I want to meet Shay next week on Wednesday at 20:00"), use the create_task function to create the task. Parse natural language dates to YYYY-MM-DD format. Use the "TODAY" field below to parse relative dates like "tomorrow", "next Wednesday", "next week".${contextString}`,
     };
+
+    // Define functions for task management
+    const functions = [
+      {
+        name: 'create_task',
+        description: lang === 'he' 
+          ? 'צור משימה חדשה או תזכורת על סמך בקשת המשתמש'
+          : 'Create a new task or reminder based on user request',
+        parameters: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: lang === 'he' ? 'כותרת המשימה' : 'Task title'
+            },
+            description: {
+              type: 'string',
+              description: lang === 'he' ? 'תיאור המשימה (אופציונלי)' : 'Task description (optional)'
+            },
+            date: {
+              type: 'string',
+              description: lang === 'he' 
+                ? 'תאריך ב-YYYY-MM-DD (חובה). פרש תאריכים טבעיים כמו "next Wednesday", "tomorrow", "יום רביעי הבא"'
+                : 'Date in YYYY-MM-DD format (required). Parse natural dates like "next Wednesday", "tomorrow"'
+            },
+            start_time: {
+              type: 'string',
+              description: lang === 'he' 
+                ? 'שעת התחלה ב-HH:MM (אופציונלי). פרש זמנים כמו "20:00", "8pm", "שמונה בערב"'
+                : 'Start time in HH:MM format (optional). Parse times like "20:00", "8pm"'
+            },
+            end_time: {
+              type: 'string',
+              description: lang === 'he' ? 'שעת סיום ב-HH:MM (אופציונלי)' : 'End time in HH:MM format (optional)'
+            },
+            priority: {
+              type: 'string',
+              enum: ['low', 'medium', 'high'],
+              description: lang === 'he' ? 'עדיפות המשימה' : 'Task priority'
+            },
+            task_type: {
+              type: 'string',
+              enum: ['task', 'reminder'],
+              description: lang === 'he'
+                ? 'סוג: "task" למשימה פעולה, "reminder" לתזכורת'
+                : 'Type: "task" for actionable task, "reminder" for informational reminder'
+            },
+            category: {
+              type: 'string',
+              description: lang === 'he' 
+                ? 'שם הקטגוריה (אופציונלי). התאם לקטגוריות הקיימות מהקונטקסט'
+                : 'Category name (optional). Match to existing categories from context'
+            },
+            tags: {
+              type: 'array',
+              items: { type: 'string' },
+              description: lang === 'he' ? 'תגיות (אופציונלי)' : 'Tags (optional)'
+            }
+          },
+          required: ['title', 'date']
+        }
+      }
+    ];
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -346,6 +430,11 @@ Reminders are informational only - no need to track or complete them.${contextSt
             content: message,
           },
         ],
+        tools: [{
+          type: 'function',
+          function: functions[0]
+        }],
+        tool_choice: 'auto',
         temperature: 0.7,
         max_tokens: 300,
       }),
@@ -361,7 +450,73 @@ Reminders are informational only - no need to track or complete them.${contextSt
     }
 
     const data = await response.json();
-    const reply = data.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+    
+    // Handle potential API errors in response
+    if (data.error) {
+      console.error('OpenAI response error:', data.error);
+      return {
+        statusCode: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: data.error.message || 'Failed to get response from OpenAI',
+          details: data.error
+        }),
+      };
+    }
+    
+    const aiMessage = data.choices?.[0]?.message;
+    if (!aiMessage) {
+      console.error('No message in OpenAI response:', JSON.stringify(data, null, 2));
+      return {
+        statusCode: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: 'No message received from OpenAI',
+          details: data
+        }),
+      };
+    }
+    
+    // Get the AI's reply text first
+    const reply = aiMessage.content || (lang === 'he' ? 'מצטער, לא הצלחתי ליצור תגובה.' : 'Sorry, I could not generate a response.');
+    
+    // Check if AI wants to call a function (create task) - support both old and new API
+    const toolCalls = aiMessage.tool_calls || [];
+    const functionCall = aiMessage.function_call || (toolCalls.length > 0 ? {
+      name: toolCalls[0].function.name,
+      arguments: toolCalls[0].function.arguments
+    } : null);
+    
+    if (functionCall && functionCall.name === 'create_task') {
+      try {
+        const taskParams = typeof functionCall.arguments === 'string' 
+          ? JSON.parse(functionCall.arguments)
+          : functionCall.arguments;
+          
+          return {
+            statusCode: 200,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reply: reply || (lang === 'he' 
+                ? `✅ הבינותי שאתה רוצה ליצור משימה: ${taskParams.title}`
+                : `✅ I understand you want to create a task: ${taskParams.title}`),
+              action: {
+                type: 'create_task',
+                parameters: taskParams
+              }
+            }),
+          };
+        } catch (parseError) {
+          console.error('Error parsing function arguments:', parseError);
+          // Fall through to normal response
+        }
+      }
 
     return {
       statusCode: 200,
