@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Task, CreateTaskInput, Priority, RecurrenceType } from '../../types/task';
+import type { Task, CreateTaskInput, Priority, RecurrenceType, TaskType } from '../../types/task';
 import type { Category } from '../../types/category';
 import type { Format } from '../../types/format';
 import { Input, Textarea, Select } from '../common/Input';
@@ -38,6 +38,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     end_time: task?.end_time ?? '',
     priority: task?.priority || 'medium',
     status: task?.status || 'todo',
+    task_type: task?.task_type || 'task',
     category_id: task?.category_id ?? '',
     format_id: task?.format_id ?? '',
     tags: task?.tags || [],
@@ -66,6 +67,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         end_time: stripSeconds(task.end_time),
         priority: task.priority || 'medium',
         status: task.status || 'todo',
+        task_type: task.task_type || 'task',
         category_id: task.category_id ?? '',
         format_id: task.format_id ?? '',
         tags: task.tags || [],
@@ -86,6 +88,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         end_time: '',
         priority: 'medium',
         status: 'todo',
+        task_type: 'task',
         category_id: '',
         format_id: '',
         tags: [],
@@ -222,6 +225,28 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             ...formats.map((fmt) => ({ value: fmt.id, label: `${fmt.icon || ''} ${fmt.name}`.trim() })),
           ]}
         />
+      </div>
+
+      <div className={styles.fullWidth}>
+        <label>{t('task.type')}</label>
+        <div className={styles.priorityOptions}>
+          {(['task', 'reminder'] as TaskType[]).map((taskType) => (
+            <button
+              key={taskType}
+              type="button"
+              className={`${styles.radioOption} ${styles.taskType} ${
+                formData.task_type === taskType ? styles.selected : ''
+              }`}
+              onClick={() => setFormData({ ...formData, task_type: taskType })}
+              title={t(`taskType.${taskType}Description`)}
+            >
+              <span className={styles.taskTypeIcon}>
+                {taskType === 'task' ? '✓' : '🔔'}
+              </span>
+              {t(`taskType.${taskType}`)}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className={styles.fullWidth}>

@@ -33,6 +33,7 @@
     "format": "Format",
     "priority": "Priority",
     "status": "Status",
+    "type": "Type",
     "tags": "Tags",
     "recurrence": "Recurrence",
     "estimated": "Estimated",
@@ -41,6 +42,12 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "addTaskToDate": "Click to add task to this date"
+  },
+  "taskType": {
+    "task": "Task",
+    "reminder": "Reminder",
+    "taskDescription": "Actionable item with status tracking",
+    "reminderDescription": "Informational note for a specific date"
   },
   "priority": {
     "low": "Low",

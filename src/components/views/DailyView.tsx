@@ -50,7 +50,19 @@ export const DailyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref) =
   }));
 
   const dateStr = format(currentDate, 'yyyy-MM-dd');
-  const dayTasks = tasks.filter((t) => t.date === dateStr);
+  const allDayTasks = tasks.filter((t) => t.date === dateStr);
+  
+  // Separate reminders from regular tasks
+  const dayReminders = allDayTasks
+    .filter((t) => t.task_type === 'reminder')
+    .sort((a, b) => {
+      if (!a.start_time && !b.start_time) return 0;
+      if (!a.start_time) return 1;
+      if (!b.start_time) return -1;
+      return a.start_time.localeCompare(b.start_time);
+    });
+  
+  const dayTasks = allDayTasks.filter((t) => t.task_type !== 'reminder');
   const scheduledTasks = dayTasks
     .filter((t) => t.start_time)
     .sort((a, b) => {
@@ -116,12 +128,23 @@ export const DailyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref) =
               {isHebrew ? holiday.nameHe : holiday.name}
             </div>
           )}
-          {dayEvents.length > 0 && (
+          {(dayEvents.length > 0 || dayReminders.length > 0) && (
             <div className={styles.eventsList}>
               {dayEvents.map((event) => (
                 <div key={event.id} className={styles.eventBadge}>
                   {event.icon} {event.name}
                   {event.year && ` (${new Date().getFullYear() - event.year})`}
+                </div>
+              ))}
+              {dayReminders.map((reminder) => (
+                <div 
+                  key={reminder.id} 
+                  className={styles.reminderBadge}
+                  onClick={() => handleTaskClick(reminder)}
+                  title={reminder.description || reminder.title}
+                >
+                  🔔 {reminder.title}
+                  {reminder.start_time && ` • ${reminder.start_time.substring(0, 5)}`}
                 </div>
               ))}
             </div>

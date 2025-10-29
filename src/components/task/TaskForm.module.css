@@ -82,6 +82,24 @@
   background: var(--color-priority-low-bg);
 }
 
+.radioOption.taskType {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+
+.radioOption.taskType.selected {
+  border-color: var(--color-accent);
+  background: rgba(79, 70, 229, 0.1);
+}
+
+.taskTypeIcon {
+  font-size: 18px;
+}
+
 .tagsInput {
   display: flex;
   flex-wrap: wrap;

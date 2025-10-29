@@ -49,13 +49,25 @@ export const MonthlyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref)
   const getTasksForDay = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return tasks
-      .filter((t) => t.date === dateStr)
+      .filter((t) => t.date === dateStr && t.task_type !== 'reminder')
       .sort((a, b) => {
         // Tasks without start_time go to the end
         if (!a.start_time && !b.start_time) return 0;
         if (!a.start_time) return 1;
         if (!b.start_time) return -1;
         // Sort by start_time
+        return a.start_time.localeCompare(b.start_time);
+      });
+  };
+
+  const getRemindersForDay = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return tasks
+      .filter((t) => t.date === dateStr && t.task_type === 'reminder')
+      .sort((a, b) => {
+        if (!a.start_time && !b.start_time) return 0;
+        if (!a.start_time) return 1;
+        if (!b.start_time) return -1;
         return a.start_time.localeCompare(b.start_time);
       });
   };
@@ -119,6 +131,7 @@ export const MonthlyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref)
         <div className={styles.daysGrid}>
           {monthDays.map((day, index) => {
             const dayTasks = getTasksForDay(day);
+            const dayReminders = getRemindersForDay(day);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const isToday = isSameDay(day, new Date());
             const holiday = getHolidayForDate(day, holidays);
@@ -149,11 +162,16 @@ export const MonthlyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref)
                     🕎
                   </span>
                 )}
-                {dayEvents.length > 0 && (
+                {(dayEvents.length > 0 || dayReminders.length > 0) && (
                   <div className={styles.eventIndicators}>
                     {dayEvents.slice(0, 3).map((event) => (
                       <span key={event.id} className={styles.eventIndicator} title={event.name}>
                         {event.icon}
+                      </span>
+                    ))}
+                    {dayReminders.slice(0, 2).map((reminder) => (
+                      <span key={reminder.id} className={styles.reminderIndicator} title={reminder.title}>
+                        🔔
                       </span>
                     ))}
                   </div>

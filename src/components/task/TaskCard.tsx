@@ -16,18 +16,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onClick,
 }) => {
   const isCompleted = task.status === 'done';
+  const isReminder = task.task_type === 'reminder';
   const categoryColor = category?.color || '#E8E8E8';
 
   return (
     <div
-      className={`${styles.taskCard} ${isCompleted ? styles.completed : ''}`}
+      className={`${styles.taskCard} ${isCompleted ? styles.completed : ''} ${isReminder ? styles.reminder : ''}`}
       onClick={onClick}
       style={{
         borderLeft: `4px solid ${categoryColor}`,
       }}
     >
       <div className={styles.content}>
-        <h3 className={styles.title}>{task.title}</h3>
+        <div className={styles.titleRow}>
+          {isReminder && <span className={styles.reminderIcon}>🔔</span>}
+          <h3 className={styles.title}>{task.title}</h3>
+        </div>
         
         {task.start_time && (
           <div className={styles.time}>

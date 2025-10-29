@@ -119,6 +119,12 @@
   cursor: help;
 }
 
+.reminderIndicator {
+  font-size: 12px;
+  cursor: help;
+  opacity: 0.9;
+}
+
 .taskIndicators {
   display: flex;
   flex-wrap: wrap;

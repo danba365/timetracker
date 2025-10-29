@@ -10,7 +10,7 @@ import { useCategories } from '../../hooks/useCategories';
 import { useFormats } from '../../hooks/useFormats';
 import { useEvents } from '../../hooks/useEvents';
 import type { Task } from '../../types/task';
-import { getWeekDays, areDatesEqual } from '../../utils/dateHelpers';
+import { getWeekDays, areDatesEqual, formatTime } from '../../utils/dateHelpers';
 import { getHebrewHolidays, getHolidayForDate } from '../../utils/hebrewCalendar';
 import { TaskCard } from '../task/TaskCard';
 import { DraggableTaskCard } from '../task/DraggableTaskCard';
@@ -142,8 +142,20 @@ export const WeeklyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref) 
         <div className={styles.weekGrid}>
         {weekDays.map((day) => {
           const dateStr = format(day, 'yyyy-MM-dd');
-          const dayTasks = tasks
-            .filter((t) => t.date === dateStr)
+          const allDayTasks = tasks.filter((t) => t.date === dateStr);
+          
+          // Separate reminders from regular tasks
+          const dayReminders = allDayTasks
+            .filter((t) => t.task_type === 'reminder')
+            .sort((a, b) => {
+              if (!a.start_time && !b.start_time) return 0;
+              if (!a.start_time) return 1;
+              if (!b.start_time) return -1;
+              return a.start_time.localeCompare(b.start_time);
+            });
+          
+          const dayTasks = allDayTasks
+            .filter((t) => t.task_type !== 'reminder')
             .sort((a, b) => {
               // Tasks without start_time go to the end
               if (!a.start_time && !b.start_time) return 0;
@@ -152,6 +164,7 @@ export const WeeklyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref) 
               // Sort by start_time
               return a.start_time.localeCompare(b.start_time);
             });
+          
           const isToday = areDatesEqual(day, new Date());
           const holiday = getHolidayForDate(day, holidays);
           const dayEvents = getEventsForDate(day);
@@ -175,11 +188,25 @@ export const WeeklyView = forwardRef<{ openAddTaskModal: () => void }>((_, ref) 
                       {isHebrew ? holiday.nameHe : holiday.name}
                     </div>
                   )}
-                  {dayEvents.length > 0 && (
+                  {(dayEvents.length > 0 || dayReminders.length > 0) && (
                     <div className={styles.eventsList}>
                       {dayEvents.map((event) => (
                         <div key={event.id} className={styles.eventBadge} title={event.notes || event.name}>
                           {event.icon} {event.name}
+                        </div>
+                      ))}
+                      {dayReminders.map((reminder) => (
+                        <div 
+                          key={reminder.id} 
+                          className={styles.reminderBadge} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTaskClick(reminder);
+                          }}
+                          title={reminder.description || reminder.title}
+                        >
+                          🔔 {reminder.title}
+                          {reminder.start_time && ` • ${formatTime(reminder.start_time)}`}
                         </div>
                       ))}
                     </div>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <div id="result"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://bifohzgibivvoozjptsa.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpZm9oemdpYml2dm9vempwdHNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4MTU1MzAsImV4cCI6MjA3NjM5MTUzMH0.fPt4PoQ2p-0dKeLWYVn7jDEbKvtzzZjVW714zYZM6KA';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+
+            try {
+                // Test 1: Fetch all tasks (no date filter)
+                console.log('Fetching all tasks...');
+                const { data: allTasks, error: allError } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .limit(10);
+
+                if (allError) {
+                    resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${allError.message}</p>`;
+                    console.error('Error:', allError);
+                    return;
+                }
+
+                resultDiv.innerHTML = `
+                    <p style="color: green;">✅ Connection successful!</p>
+                    <p><strong>Found ${allTasks.length} tasks (showing first 10)</strong></p>
+                    <pre>${JSON.stringify(allTasks, null, 2)}</pre>
+                `;
+
+                console.log('Tasks:', allTasks);
+
+                // Test 2: Fetch tasks for this week
+                const today = new Date();
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay());
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+                const startDate = startOfWeek.toISOString().split('T')[0];
+                const endDate = endOfWeek.toISOString().split('T')[0];
+
+                console.log('Fetching tasks for this week:', startDate, 'to', endDate);
+                const { data: weekTasks, error: weekError } = await supabase
+                    .from('tasks')
+                    .select('*')
+                    .gte('date', startDate)
+                    .lte('date', endDate);
+
+                if (weekError) {
+                    console.error('Week query error:', weekError);
+                } else {
+                    console.log('This week tasks:', weekTasks);
+                    resultDiv.innerHTML += `<p><strong>This week (${startDate} to ${endDate}): ${weekTasks.length} tasks</strong></p>`;
+                }
+
+            } catch (err) {
+                resultDiv.innerHTML = `<p style="color: red;">❌ Exception: ${err.message}</p>`;
+                console.error('Exception:', err);
+            }
+        }
+    </script>
+</body>
+</html>
+

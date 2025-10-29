@@ -55,6 +55,23 @@
   display: inline-block;
 }
 
+.reminderBadge {
+  font-size: var(--font-size-body-sm);
+  color: #0284c7;
+  background: rgba(14, 165, 233, 0.15);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  display: inline-block;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.reminderBadge:hover {
+  background: rgba(14, 165, 233, 0.25);
+  transform: translateY(-1px);
+}
+
 .tasksSummary {
   font-size: var(--font-size-body-sm);
   color: var(--color-text-secondary);

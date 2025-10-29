@@ -33,6 +33,7 @@
     "format": "פורמט",
     "priority": "עדיפות",
     "status": "סטטוס",
+    "type": "סוג",
     "tags": "תגיות",
     "recurrence": "הישנות",
     "estimated": "משוער",
@@ -41,6 +42,12 @@
     "cancel": "בטל",
     "delete": "מחק",
     "addTaskToDate": "לחץ להוספת משימה לתאריך זה"
+  },
+  "taskType": {
+    "task": "משימה",
+    "reminder": "תזכורת",
+    "taskDescription": "פריט פעולה עם מעקב סטטוס",
+    "reminderDescription": "הערה אינפורמטיבית לתאריך ספציפי"
   },
   "priority": {
     "low": "נמוך",

@@ -1,6 +1,7 @@
 export type Priority = 'low' | 'medium' | 'high';
 export type Status = 'todo' | 'in_progress' | 'done';
 export type RecurrenceType = 'daily' | 'weekly' | 'custom';
+export type TaskType = 'task' | 'reminder';
 
 export interface Task {
   id: string;
@@ -11,6 +12,7 @@ export interface Task {
   end_time?: string; // HH:MM format
   priority: Priority;
   status: Status;
+  task_type: TaskType;
   category_id?: string;
   format_id?: string;
   tags: string[];
@@ -31,6 +33,7 @@ export interface CreateTaskInput {
   end_time?: string | null;
   priority: Priority;
   status: Status;
+  task_type?: TaskType;
   category_id?: string | null;
   format_id?: string | null;
   tags?: string[];

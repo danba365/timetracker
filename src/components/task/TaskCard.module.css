@@ -19,10 +19,26 @@
   opacity: 0.7;
 }
 
+.taskCard.reminder {
+  background: rgba(14, 165, 233, 0.05);
+  border-left-color: #0ea5e9 !important;
+}
+
 .content {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.reminderIcon {
+  font-size: 16px;
+  opacity: 0.8;
 }
 
 .title {
