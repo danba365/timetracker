@@ -18,13 +18,23 @@ interface TaskContext {
     totalHours: number;
     tasks: Array<{
       title: string;
+      description?: string;
       date: string;
+      start_time?: string;
+      end_time?: string;
       status: string;
+      priority: string;
       category: string;
+      format?: string;
+      tags?: string[];
+      is_recurring?: boolean;
+      recurrence_type?: string;
     }>;
     reminders: Array<{
       title: string;
+      description?: string;
       date: string;
+      start_time?: string;
       category: string;
     }>;
   };
@@ -36,13 +46,23 @@ interface TaskContext {
     totalTasks: number;
     tasks: Array<{
       title: string;
+      description?: string;
       date: string;
+      start_time?: string;
+      end_time?: string;
       status: string;
+      priority: string;
       category: string;
+      format?: string;
+      tags?: string[];
+      is_recurring?: boolean;
+      recurrence_type?: string;
     }>;
     reminders: Array<{
       title: string;
+      description?: string;
       date: string;
+      start_time?: string;
       category: string;
     }>;
   };
@@ -51,14 +71,19 @@ interface TaskContext {
     completed: number;
     recentCompleted: Array<{
       title: string;
+      description?: string;
       date: string;
+      category?: string;
     }>;
   };
   futureTasks: {
     total: number;
     upcoming: Array<{
       title: string;
+      description?: string;
       date: string;
+      start_time?: string;
+      priority?: string;
       category: string;
     }>;
   };
@@ -74,8 +99,11 @@ interface TaskContext {
     total: number;
     tasks: Array<{
       title: string;
+      description?: string;
       date: string;
+      start_time?: string;
       daysOverdue: number;
+      priority?: string;
       category: string;
     }>;
   };
@@ -117,6 +145,27 @@ const handler: Handler = async (event: HandlerEvent) => {
     // Build context string if available
     let contextString = '';
     if (context) {
+      // Helper function to format task details
+      const formatTask = (t: any, isHebrew: boolean) => {
+        let taskInfo = `  • ${t.title} - ${t.date} [${t.status}]`;
+        if (t.priority) taskInfo += ` [${isHebrew ? (t.priority === 'high' ? 'גבוה' : t.priority === 'medium' ? 'בינוני' : 'נמוך') : t.priority}]`;
+        taskInfo += ` (${t.category})`;
+        if (t.start_time && t.end_time) taskInfo += ` ${t.start_time}-${t.end_time}`;
+        else if (t.start_time) taskInfo += ` ${t.start_time}`;
+        if (t.description) taskInfo += `\n    📝 ${t.description}`;
+        if (t.format) taskInfo += ` | ${isHebrew ? 'פורמט' : 'Format'}: ${t.format}`;
+        if (t.tags && t.tags.length > 0) taskInfo += ` | ${isHebrew ? 'תגיות' : 'Tags'}: ${t.tags.join(', ')}`;
+        if (t.is_recurring) taskInfo += ` | ${isHebrew ? 'חוזר' : 'Recurring'}: ${t.recurrence_type || 'custom'}`;
+        return taskInfo;
+      };
+
+      const formatReminder = (r: any, isHebrew: boolean) => {
+        let reminderInfo = `  🔔 ${r.title} - ${r.date} (${r.category})`;
+        if (r.start_time) reminderInfo += ` ${r.start_time}`;
+        if (r.description) reminderInfo += `\n    📝 ${r.description}`;
+        return reminderInfo;
+      };
+
       if (lang === 'he') {
         contextString = `\n\n=== 📅 היום: ${context.currentDate} (${context.currentDay}) ===
 
@@ -129,34 +178,53 @@ const handler: Handler = async (event: HandlerEvent) => {
 - הושלמו: ${context.currentWeek.completedTasks} (${context.currentWeek.completionRate}%)
 - שעות עבודה: ${context.currentWeek.totalHours}
 - משימות פעולה (דורשות השלמה):
-${context.currentWeek.tasks.length > 0 ? context.currentWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • אין משימות'}
+${context.currentWeek.tasks.length > 0 ? context.currentWeek.tasks.map((t) => formatTask(t, true)).join('\n') : '  • אין משימות'}
 - תזכורות (אינפורמטיביות בלבד):
-${context.currentWeek.reminders.length > 0 ? context.currentWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • אין תזכורות'}
+${context.currentWeek.reminders.length > 0 ? context.currentWeek.reminders.map((r) => formatReminder(r, true)).join('\n') : '  • אין תזכורות'}
 
 📅 שבוע הבא (${context.nextWeek.range.start} - ${context.nextWeek.range.end}):
 - סה"כ משימות פעולה: ${context.nextWeek.totalTasks}
 - משימות פעולה מתוכננות:
-${context.nextWeek.tasks.length > 0 ? context.nextWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • אין משימות מתוכננות'}
+${context.nextWeek.tasks.length > 0 ? context.nextWeek.tasks.map((t) => formatTask(t, true)).join('\n') : '  • אין משימות מתוכננות'}
 - תזכורות (אינפורמטיביות בלבד):
-${context.nextWeek.reminders.length > 0 ? context.nextWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • אין תזכורות'}
+${context.nextWeek.reminders.length > 0 ? context.nextWeek.reminders.map((r) => formatReminder(r, true)).join('\n') : '  • אין תזכורות'}
 
 📚 משימות עבר:
 - סה"כ: ${context.pastTasks.total}
 - הושלמו: ${context.pastTasks.completed}
 - הושלמו לאחרונה:
-${context.pastTasks.recentCompleted.map((t) => `  • ${t.title} - ${t.date}`).join('\n')}
+${context.pastTasks.recentCompleted.map((t) => {
+  let info = `  • ${t.title} - ${t.date}`;
+  if (t.category) info += ` (${t.category})`;
+  if (t.description) info += `\n    📝 ${t.description}`;
+  return info;
+}).join('\n')}
 
 🔮 משימות עתידיות (אחרי שבוע הבא):
 - סה"כ: ${context.futureTasks.total}
 - קרובות ביותר:
-${context.futureTasks.upcoming.length > 0 ? context.futureTasks.upcoming.map((t) => `  • ${t.title} - ${t.date} (${t.category})`).join('\n') : '  • אין משימות מתוכננות'}
+${context.futureTasks.upcoming.length > 0 ? context.futureTasks.upcoming.map((t) => {
+  let info = `  • ${t.title} - ${t.date}`;
+  if (t.start_time) info += ` ${t.start_time}`;
+  if (t.priority) info += ` [${t.priority === 'high' ? 'גבוה' : t.priority === 'medium' ? 'בינוני' : 'נמוך'}]`;
+  info += ` (${t.category})`;
+  if (t.description) info += `\n    📝 ${t.description}`;
+  return info;
+}).join('\n') : '  • אין משימות מתוכננות'}
 
 🏆 קטגוריות מובילות:
 ${context.topCategories.map((cat) => `- ${cat.name}: ${cat.completed}/${cat.tasks} משימות (${cat.hours} שעות, ${cat.completionRate}% הושלמו)`).join('\n')}
 
 ⚠️ משימות שהוחמצו (לא הושלמו בזמן):
 - סה"כ משימות שהוחמצו: ${context.overdueTasks.total}
-${context.overdueTasks.total > 0 ? `- משימות שהוחמצו:\n${context.overdueTasks.tasks.map((t) => `  • ${t.title} - ${t.date} (${t.daysOverdue} ימים באיחור) [${t.category}]`).join('\n')}` : '- אין משימות שהוחמצו - עבודה מצוינת! 🎉'}
+${context.overdueTasks.total > 0 ? `- משימות שהוחמצו:\n${context.overdueTasks.tasks.map((t) => {
+  let info = `  • ${t.title} - ${t.date} (${t.daysOverdue} ימים באיחור)`;
+  if (t.start_time) info += ` ${t.start_time}`;
+  if (t.priority) info += ` [${t.priority === 'high' ? 'גבוה' : t.priority === 'medium' ? 'בינוני' : 'נמוך'}]`;
+  info += ` [${t.category}]`;
+  if (t.description) info += `\n    📝 ${t.description}`;
+  return info;
+}).join('\n')}` : '- אין משימות שהוחמצו - עבודה מצוינת! 🎉'}
 ===`;
       } else {
         contextString = `\n\n=== 📅 TODAY: ${context.currentDate} (${context.currentDay}) ===
@@ -170,34 +238,53 @@ ${context.overdueTasks.total > 0 ? `- משימות שהוחמצו:\n${context.ov
 - Completed: ${context.currentWeek.completedTasks} (${context.currentWeek.completionRate}%)
 - Work Hours: ${context.currentWeek.totalHours}
 - Actionable Tasks (require completion):
-${context.currentWeek.tasks.length > 0 ? context.currentWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • No tasks'}
+${context.currentWeek.tasks.length > 0 ? context.currentWeek.tasks.map((t) => formatTask(t, false)).join('\n') : '  • No tasks'}
 - Reminders (informational only):
-${context.currentWeek.reminders.length > 0 ? context.currentWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • No reminders'}
+${context.currentWeek.reminders.length > 0 ? context.currentWeek.reminders.map((r) => formatReminder(r, false)).join('\n') : '  • No reminders'}
 
 📅 NEXT WEEK (${context.nextWeek.range.start} - ${context.nextWeek.range.end}):
 - Total Actionable Tasks: ${context.nextWeek.totalTasks}
 - Scheduled Actionable Tasks:
-${context.nextWeek.tasks.length > 0 ? context.nextWeek.tasks.map((t) => `  • ${t.title} - ${t.date} [${t.status}] (${t.category})`).join('\n') : '  • No tasks scheduled'}
+${context.nextWeek.tasks.length > 0 ? context.nextWeek.tasks.map((t) => formatTask(t, false)).join('\n') : '  • No tasks scheduled'}
 - Reminders (informational only):
-${context.nextWeek.reminders.length > 0 ? context.nextWeek.reminders.map((r) => `  🔔 ${r.title} - ${r.date} (${r.category})`).join('\n') : '  • No reminders'}
+${context.nextWeek.reminders.length > 0 ? context.nextWeek.reminders.map((r) => formatReminder(r, false)).join('\n') : '  • No reminders'}
 
 📚 PAST TASKS:
 - Total: ${context.pastTasks.total}
 - Completed: ${context.pastTasks.completed}
 - Recently Completed:
-${context.pastTasks.recentCompleted.map((t) => `  • ${t.title} - ${t.date}`).join('\n')}
+${context.pastTasks.recentCompleted.map((t) => {
+  let info = `  • ${t.title} - ${t.date}`;
+  if (t.category) info += ` (${t.category})`;
+  if (t.description) info += `\n    📝 ${t.description}`;
+  return info;
+}).join('\n')}
 
 🔮 FUTURE TASKS (after next week):
 - Total: ${context.futureTasks.total}
 - Upcoming:
-${context.futureTasks.upcoming.length > 0 ? context.futureTasks.upcoming.map((t) => `  • ${t.title} - ${t.date} (${t.category})`).join('\n') : '  • No tasks scheduled'}
+${context.futureTasks.upcoming.length > 0 ? context.futureTasks.upcoming.map((t) => {
+  let info = `  • ${t.title} - ${t.date}`;
+  if (t.start_time) info += ` ${t.start_time}`;
+  if (t.priority) info += ` [${t.priority}]`;
+  info += ` (${t.category})`;
+  if (t.description) info += `\n    📝 ${t.description}`;
+  return info;
+}).join('\n') : '  • No tasks scheduled'}
 
 🏆 TOP CATEGORIES:
 ${context.topCategories.map((cat) => `- ${cat.name}: ${cat.completed}/${cat.tasks} tasks (${cat.hours}h, ${cat.completionRate}% complete)`).join('\n')}
 
 ⚠️ OVERDUE TASKS (not completed on time):
 - Total Overdue: ${context.overdueTasks.total}
-${context.overdueTasks.total > 0 ? `- Overdue Tasks:\n${context.overdueTasks.tasks.map((t) => `  • ${t.title} - ${t.date} (${t.daysOverdue} days overdue) [${t.category}]`).join('\n')}` : '- No overdue tasks - great job! 🎉'}
+${context.overdueTasks.total > 0 ? `- Overdue Tasks:\n${context.overdueTasks.tasks.map((t) => {
+  let info = `  • ${t.title} - ${t.date} (${t.daysOverdue} days overdue)`;
+  if (t.start_time) info += ` ${t.start_time}`;
+  if (t.priority) info += ` [${t.priority}]`;
+  info += ` [${t.category}]`;
+  if (t.description) info += `\n    📝 ${t.description}`;
+  return info;
+}).join('\n')}` : '- No overdue tasks - great job! 🎉'}
 ===`;
       }
     }

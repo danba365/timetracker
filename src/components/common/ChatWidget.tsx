@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { startOfWeek, endOfWeek, format as formatDate } from 'date-fns';
 import { useTasks } from '../../hooks/useTasks';
 import { useCategories } from '../../hooks/useCategories';
+import { useFormats } from '../../hooks/useFormats';
 import { calculateMetrics, getCategoryStats } from '../../services/analyticsService';
 import styles from './ChatWidget.module.css';
 
@@ -30,6 +31,7 @@ export const ChatWidget: React.FC = () => {
   };
   const { tasks } = useTasks(fullRange);
   const { categories } = useCategories();
+  const { formats } = useFormats();
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -140,15 +142,25 @@ export const ChatWidget: React.FC = () => {
               .filter((t) => t.task_type !== 'reminder')
               .map((t) => ({
                 title: t.title,
+                description: t.description || undefined,
                 date: t.date,
+                start_time: t.start_time || undefined,
+                end_time: t.end_time || undefined,
                 status: t.status,
+                priority: t.priority,
                 category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+                format: formats.find((f) => f.id === t.format_id)?.name || undefined,
+                tags: t.tags && t.tags.length > 0 ? t.tags : undefined,
+                is_recurring: t.is_recurring || false,
+                recurrence_type: t.recurrence_type || undefined,
               })),
             reminders: currentWeekTasks
               .filter((t) => t.task_type === 'reminder')
               .map((t) => ({
                 title: t.title,
+                description: t.description || undefined,
                 date: t.date,
+                start_time: t.start_time || undefined,
                 category: categories.find((c) => c.id === t.category_id)?.name || 'None',
               })),
           },
@@ -162,15 +174,25 @@ export const ChatWidget: React.FC = () => {
               .filter((t) => t.task_type !== 'reminder')
               .map((t) => ({
                 title: t.title,
+                description: t.description || undefined,
                 date: t.date,
+                start_time: t.start_time || undefined,
+                end_time: t.end_time || undefined,
                 status: t.status,
+                priority: t.priority,
                 category: categories.find((c) => c.id === t.category_id)?.name || 'None',
+                format: formats.find((f) => f.id === t.format_id)?.name || undefined,
+                tags: t.tags && t.tags.length > 0 ? t.tags : undefined,
+                is_recurring: t.is_recurring || false,
+                recurrence_type: t.recurrence_type || undefined,
               })),
             reminders: nextWeekTasks
               .filter((t) => t.task_type === 'reminder')
               .map((t) => ({
                 title: t.title,
+                description: t.description || undefined,
                 date: t.date,
+                start_time: t.start_time || undefined,
                 category: categories.find((c) => c.id === t.category_id)?.name || 'None',
               })),
           },
@@ -183,7 +205,9 @@ export const ChatWidget: React.FC = () => {
               .slice(0, 5)
               .map((t) => ({
                 title: t.title,
+                description: t.description || undefined,
                 date: t.date,
+                category: categories.find((c) => c.id === t.category_id)?.name || undefined,
               })),
           },
           futureTasks: {
@@ -193,7 +217,10 @@ export const ChatWidget: React.FC = () => {
               .slice(0, 5)
               .map((t) => ({
                 title: t.title,
+                description: t.description || undefined,
                 date: t.date,
+                start_time: t.start_time || undefined,
+                priority: t.priority,
                 category: categories.find((c) => c.id === t.category_id)?.name || 'None',
               })),
           },
@@ -214,8 +241,11 @@ export const ChatWidget: React.FC = () => {
                 const daysOverdue = Math.floor((today.getTime() - taskDate.getTime()) / (1000 * 60 * 60 * 24));
                 return {
                   title: t.title,
+                  description: t.description || undefined,
                   date: t.date,
+                  start_time: t.start_time || undefined,
                   daysOverdue: daysOverdue,
+                  priority: t.priority,
                   category: categories.find((c) => c.id === t.category_id)?.name || 'None',
                 };
               }),
